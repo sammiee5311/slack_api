@@ -1,3 +1,4 @@
+import json
 from abc import ABC, abstractmethod
 from collections import defaultdict
 
@@ -63,8 +64,9 @@ class VoteCommand(SlashCommand):
 
 
 class MessageCountCommand(SlashCommand):
-    def __init__(self, client: WebClient):
+    def __init__(self, client: WebClient, message_counts: dict):
         self.client = client
+        self.message_counts = message_counts
 
     def handler(self):
         data = request.form
@@ -72,7 +74,7 @@ class MessageCountCommand(SlashCommand):
         user_id = data.get("user_id", 0)
         channel_id = data.get("channel_id", 0)
         self.client.chat_postMessage(
-            channel=channel_id, text=f"{user_name} sent {self.message_counts[user_id]} messages."
+            channel=channel_id, text=f"<@{user_name}> sent {self.message_counts[user_id]} messages."
         )
 
 
@@ -86,3 +88,20 @@ class WeatherInfoCommand(SlashCommand):
         channel_id = data.get("channel_id", 0)
         current_weather = weather_api.get_current_weather()
         self.client.chat_postMessage(channel=channel_id, text=f"Current weather is {current_weather}.")
+
+
+class Interactions:
+    def __init__(self, client: WebClient):
+        self.client = client
+
+    def handler(self):
+        data = request.form["payload"]
+        data = json.loads(data)
+        callback = data.get("callback_id", "")
+        channel_lists = self.client.conversations_list().get("channels", [])
+        if callback == "vote_team_leader":
+            self.vote_team_leader(channel_lists)
+
+    def vote_team_leader(self, channel_list):
+        for channel_list in channel_list:
+            self.client.chat_postMessage(channel=channel_list.get("id"), text=f"Start vote for a new team leader !")

@@ -7,6 +7,7 @@ from flask import Flask
 from config.config import load_env
 from endpoints._flask import (
     FlaskAppWrapper,
+    Interactions,
     MessageCountCommand,
     VoteCommand,
     WeatherInfoCommand,
@@ -59,8 +60,9 @@ if __name__ == "__main__":
     flask = FlaskAppWrapper(Flask(__name__))
 
     vote_command = VoteCommand(bot.client)
-    message_count_command = MessageCountCommand(bot.client)
+    message_count_command = MessageCountCommand(bot.client, bot.message_counts)
     weather_info_command = WeatherInfoCommand(bot.client)
+    interactions = Interactions(bot.client)
 
     slack_wrapper = SlackEventWrapper(flask.app)
 
@@ -77,7 +79,9 @@ if __name__ == "__main__":
         endpoint="/weather", endpoint_name="weather", handler=weather_info_command.handler, methods=["POST"]
     )
     flask.add_endpoint(endpoint="/vote", endpoint_name="vote", handler=vote_command.handler, methods=["POST"])
-
+    flask.add_endpoint(
+        endpoint="/interactive", endpoint_name="interactive", handler=interactions.handler, methods=["POST"]
+    )
     slack_wrapper.add_hanlders(event="message", handler=message_event.handler)
     slack_wrapper.add_hanlders(event="reaction_added", handler=reaction_event.handler)
 
