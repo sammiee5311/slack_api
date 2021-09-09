@@ -43,10 +43,8 @@ class WelcomeMessage(Message):
         }
 
     def _get_reaction_task(self):
-        check_mark = ":white_check_mark:"
-        if not self.completed:
-            check_mark = ":white_large_square:"
+        doc_link = os.environ["DOC_LINK"]
 
-        text = f"{check_mark} *React to this message!*"
+        text = f"*Please, read our <{doc_link}|DOC>!*"
 
         return {"type": "section", "text": {"type": "mrkdwn", "text": text}}

@@ -22,7 +22,7 @@ class SlackBot:
         self.welcome_messages = defaultdict(dict)
         self.client = slack.WebClient(token=os.environ["SLACK_TOKEN"])
         self.BOT_ID = self.client.api_call("auth.test")["user_id"]
-        self.vote_table = defaultdict(dict)
+        self.ICON = "https://emoji.slack-edge.com/T02DBK38URZ/squirrel/465f40c0e0.png"
         self.welcome = WelcomeMessage()
 
     def message(self, event):
@@ -34,7 +34,6 @@ class SlackBot:
 
         if user_id and self.BOT_ID != user_id:
             self.message_counts[user_id] += 1
-            # self.client.chat_postMessage(channel=channel_id, text=text)
 
             if text.lower() == "start":
                 self.welcome.send_message(f"@{user_id}", user_id)
@@ -45,7 +44,7 @@ class SlackBot:
 
         if user_id not in self.welcome.messages:
             return
-
+        print(channel_id)
         welcome = self.welcome.messages[user_id][user_id[1:]]
         welcome.completed = True
         welcome.channel = channel_id
@@ -59,10 +58,10 @@ if __name__ == "__main__":
     bot = SlackBot()
     flask = FlaskAppWrapper(Flask(__name__))
 
-    vote_command = VoteCommand(bot.client)
-    message_count_command = MessageCountCommand(bot.client, bot.message_counts)
-    weather_info_command = WeatherInfoCommand(bot.client)
-    interactions = Interactions(bot.client)
+    vote_command = VoteCommand(bot)
+    message_count_command = MessageCountCommand(bot)
+    weather_info_command = WeatherInfoCommand(bot)
+    interactions = Interactions(bot)
 
     slack_wrapper = SlackEventWrapper(flask.app)
 
@@ -80,7 +79,7 @@ if __name__ == "__main__":
     )
     flask.add_endpoint(endpoint="/vote", endpoint_name="vote", handler=vote_command.handler, methods=["POST"])
     flask.add_endpoint(
-        endpoint="/interactive", endpoint_name="interactive", handler=interactions.handler, methods=["POST"]
+        endpoint="/interactions", endpoint_name="interactions", handler=interactions.handler, methods=["POST"]
     )
     slack_wrapper.add_hanlders(event="message", handler=message_event.handler)
     slack_wrapper.add_hanlders(event="reaction_added", handler=reaction_event.handler)

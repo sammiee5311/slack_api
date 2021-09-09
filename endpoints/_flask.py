@@ -4,7 +4,6 @@ from collections import defaultdict
 
 from api.weather import WeatherApi
 from flask import Response, request
-from slack import WebClient
 
 
 class EndpointAction:
@@ -30,7 +29,7 @@ class FlaskAppWrapper:
 
 class SlashCommand(ABC):
     @abstractmethod
-    def __init__(self, client: WebClient):
+    def __init__(self, bot):
         """init method"""
 
     @abstractmethod
@@ -39,9 +38,10 @@ class SlashCommand(ABC):
 
 
 class VoteCommand(SlashCommand):
-    def __init__(self, client: WebClient):
-        self.client = client
+    def __init__(self, bot):
+        self.client = bot.client
         self.vote_table = defaultdict(dict)
+        self.icon = bot.ICON
 
     def handler(self):
         data = request.form
@@ -50,12 +50,18 @@ class VoteCommand(SlashCommand):
         channel = data.get("channel_id", 0)
 
         if not target:
-            self.client.chat_postMessage(channel=channel, text=f"Please, choose a user.")
+            self.client.chat_postMessage(
+                channel=channel,
+                text=f"Please, choose a user.",
+                icon_url=self.icon,
+            )
             return
 
         if user in self.vote_table[channel]:
             self.client.chat_postMessage(
-                channel=channel, text=f"Sorry, each person can vote once. (<@{user}> already voted.)"
+                channel=channel,
+                text=f"Sorry, each person can vote once. (<@{user}> already voted.)",
+                icon_url=self.icon,
             )
             return
 
@@ -64,9 +70,10 @@ class VoteCommand(SlashCommand):
 
 
 class MessageCountCommand(SlashCommand):
-    def __init__(self, client: WebClient, message_counts: dict):
-        self.client = client
-        self.message_counts = message_counts
+    def __init__(self, bot):
+        self.client = bot.client
+        self.message_counts = bot.message_counts
+        self.icon = bot.ICON
 
     def handler(self):
         data = request.form
@@ -74,25 +81,33 @@ class MessageCountCommand(SlashCommand):
         user_id = data.get("user_id", 0)
         channel_id = data.get("channel_id", 0)
         self.client.chat_postMessage(
-            channel=channel_id, text=f"<@{user_name}> sent {self.message_counts[user_id]} messages."
+            channel=channel_id,
+            text=f"<@{user_name}> sent {self.message_counts[user_id]} messages.",
+            icon_url=self.icon,
         )
 
 
 class WeatherInfoCommand(SlashCommand):
-    def __init__(self, client: WebClient):
-        self.client = client
+    def __init__(self, bot):
+        self.client = bot.client
+        self.icon = bot.ICON
 
     def handler(self):
         weather_api = WeatherApi()
         data = request.form
         channel_id = data.get("channel_id", 0)
         current_weather = weather_api.get_current_weather()
-        self.client.chat_postMessage(channel=channel_id, text=f"Current weather is {current_weather}.")
+        self.client.chat_postMessage(
+            channel=channel_id,
+            text=f"Current weather is {current_weather}.",
+            icon_url=self.icon,
+        )
 
 
 class Interactions:
-    def __init__(self, client: WebClient):
-        self.client = client
+    def __init__(self, bot):
+        self.client = bot.client
+        self.icon = bot.ICON
 
     def handler(self):
         data = request.form["payload"]
@@ -104,4 +119,8 @@ class Interactions:
 
     def vote_team_leader(self, channel_list):
         for channel_list in channel_list:
-            self.client.chat_postMessage(channel=channel_list.get("id"), text=f"Start vote for a new team leader !")
+            self.client.chat_postMessage(
+                channel=channel_list.get("id"),
+                text=f"Start vote for a new team leader !",
+                icon_url=self.icon,
+            )
