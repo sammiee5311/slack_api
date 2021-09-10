@@ -24,6 +24,26 @@ class SlackBot:
         self.BOT_ID = self.client.api_call("auth.test")["user_id"]
         self.ICON = "https://emoji.slack-edge.com/T02DBK38URZ/squirrel/465f40c0e0.png"
         self.welcome = WelcomeMessage()
+        self.admin_ids = ["U02E1867LHE"]
+        self.leader = None
+        self.current_vote_status = False  # False: No Leader
+
+    def set_leader(self, leader):
+        self.leader = leader
+        self.current_vote_status = True if leader else None
+
+    def get_leader(self):
+        return self.leader
+
+    def get_current_vote_status(self):
+        return self.current_vote_status
+
+    def send_message(self, text, channel_id):
+        self.client.chat_postMessage(
+            channel=channel_id,
+            text=text,
+            icon_url=self.ICON,
+        )
 
     def message(self, event):
         channel_id = event.get("channel")
@@ -44,7 +64,7 @@ class SlackBot:
 
         if user_id not in self.welcome.messages:
             return
-        print(channel_id)
+
         welcome = self.welcome.messages[user_id][user_id[1:]]
         welcome.completed = True
         welcome.channel = channel_id
@@ -61,6 +81,7 @@ if __name__ == "__main__":
     vote_command = VoteCommand(bot)
     message_count_command = MessageCountCommand(bot)
     weather_info_command = WeatherInfoCommand(bot)
+
     interactions = Interactions(bot)
 
     slack_wrapper = SlackEventWrapper(flask.app)
@@ -81,6 +102,7 @@ if __name__ == "__main__":
     flask.add_endpoint(
         endpoint="/interactions", endpoint_name="interactions", handler=interactions.handler, methods=["POST"]
     )
+
     slack_wrapper.add_hanlders(event="message", handler=message_event.handler)
     slack_wrapper.add_hanlders(event="reaction_added", handler=reaction_event.handler)
 
