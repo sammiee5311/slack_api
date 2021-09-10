@@ -9,6 +9,7 @@ from endpoints._flask import (
     FlaskAppWrapper,
     Interactions,
     MessageCountCommand,
+    TranslationCommand,
     VoteCommand,
     WeatherInfoCommand,
 )
@@ -52,6 +53,8 @@ class SlackBot:
         user_id = event.get("user", 0)
         text = event.get("text")
 
+        print(text, channel_id)
+
         if user_id and self.BOT_ID != user_id:
             self.message_counts[user_id] += 1
 
@@ -81,6 +84,7 @@ if __name__ == "__main__":
     vote_command = VoteCommand(bot)
     message_count_command = MessageCountCommand(bot)
     weather_info_command = WeatherInfoCommand(bot)
+    translation_command = TranslationCommand(bot)
 
     interactions = Interactions(bot)
 
@@ -97,6 +101,9 @@ if __name__ == "__main__":
     )
     flask.add_endpoint(
         endpoint="/weather", endpoint_name="weather", handler=weather_info_command.handler, methods=["POST"]
+    )
+    flask.add_endpoint(
+        endpoint="/translation", endpoint_name="translation", handler=translation_command.handler, methods=["POST"]
     )
     flask.add_endpoint(endpoint="/vote", endpoint_name="vote", handler=vote_command.handler, methods=["POST"])
     flask.add_endpoint(

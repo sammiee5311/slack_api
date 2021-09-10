@@ -2,6 +2,7 @@ import json
 from abc import ABC, abstractmethod
 from collections import defaultdict
 
+from api.translate import TranslationApi
 from api.weather import WeatherApi
 from flask import Response, request
 
@@ -35,6 +36,33 @@ class SlashCommand(ABC):
     @abstractmethod
     def handler(self):
         """slash command handler"""
+
+
+class TranslationCommand(SlashCommand):
+    def __init__(self, bot):
+        self.client = bot.client
+        self.icon = bot.ICON
+        self.send_meesage = bot.send_message
+        self.translate_api = TranslationApi()
+
+    def handler(self):
+        data = request.form
+        user = data.get("user_id", "")
+        text = data.get("text", "").lstrip().rstrip()
+        channel = f"@{user}"
+
+        if not text:
+            text = "Please, Write text that you want to translate."
+            self.send_meesage(text, channel)
+            return
+
+        if "--lang" not in text:
+            translated_text = self.translate_api.translate_text(text)
+        else:
+            text, lang = text.split("--lang")
+            translated_text = self.translate_api.translate_text(text, lang.lstrip().rstrip())
+
+        self.send_meesage(translated_text, channel)
 
 
 class VoteCommand(SlashCommand):
@@ -136,12 +164,12 @@ class WeatherInfoCommand(SlashCommand):
         self.client = bot.client
         self.icon = bot.ICON
         self.send_message = bot.send_message
+        self.weather_api = WeatherApi()
 
     def handler(self):
-        weather_api = WeatherApi()
         data = request.form
         channel = data.get("channel_id", 0)
-        current_weather = weather_api.get_current_weather()
+        current_weather = self.weather_api.get_current_weather()
         channel = channel
         text = f"Current weather is {current_weather}."
         self.send_message(text, channel)
