@@ -45,6 +45,10 @@ class WelcomeMessage(Message):
     def _get_reaction_task(self):
         doc_link = os.environ["DOC_LINK"]
 
-        text = f"*Please, read our <{doc_link}|DOC>!*"
+        text = (
+            f"*Please, read our <{doc_link}|DOC>!* \n\n"
+            f"*We have weather and translation api currently!* \n\n"
+            f"*To see instructions of our provided api, simply type /help!*"
+        )
 
         return {"type": "section", "text": {"type": "mrkdwn", "text": text}}

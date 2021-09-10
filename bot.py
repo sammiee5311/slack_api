@@ -4,15 +4,12 @@ from collections import defaultdict
 import slack
 from flask import Flask
 
+from commands.message_count import MessageCountCommand
+from commands.translation import TranslationCommand
+from commands.vote import VoteCommand
+from commands.weather_info import WeatherInfoCommand
 from config.config import load_env
-from endpoints._flask import (
-    FlaskAppWrapper,
-    Interactions,
-    MessageCountCommand,
-    TranslationCommand,
-    VoteCommand,
-    WeatherInfoCommand,
-)
+from endpoints._flask import FlaskAppWrapper, Interactions
 from endpoints._slack import MessageEvent, ReactionEvent, SlackEventWrapper
 from message import WelcomeMessage
 
@@ -52,8 +49,6 @@ class SlackBot:
             image_url = event.get("files", "")[0].get("url_private_download")
         user_id = event.get("user", 0)
         text = event.get("text")
-
-        print(text, channel_id)
 
         if user_id and self.BOT_ID != user_id:
             self.message_counts[user_id] += 1
