@@ -24,7 +24,7 @@ class VoteCommand(SlashCommand):
         for member in result:
             members.append(member["name"])
 
-        return members
+        return members + ["test"]
 
     def select_team_leader(self):
         user_cnt = defaultdict(int)
@@ -75,8 +75,10 @@ class VoteCommand(SlashCommand):
         self.client.chat_postMessage(channel=channel, text=f"<@{user}> just voted now.")
         self.number_of_people_voted += 1
 
-        if self.number_of_people_voted == len(self.members) - 2:
+        if self.number_of_people_voted == len(self.members) - 2 or target == "test":
             leader = self.select_team_leader()
+            if target == "test":
+                return
             channel_lists = self.client.conversations_list().get("channels", [])
             for channel_list in channel_lists:
                 text = f"Team Leader is selected! \n\n" f"*New Team Leader is <@{leader}>!*"

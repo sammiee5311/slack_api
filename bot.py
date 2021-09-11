@@ -22,7 +22,7 @@ class SlackBot:
         self.BOT_ID = self.client.api_call("auth.test")["user_id"]
         self.ICON = "https://emoji.slack-edge.com/T02DBK38URZ/squirrel/465f40c0e0.png"
         self.welcome = WelcomeMessage()
-        self.admin_ids = ["U02E1867LHE"]
+        self.admin_ids = [os.environ["TEST_ID"]]
         self.leader = None
         self.current_vote_status = False  # False: No Leader
 

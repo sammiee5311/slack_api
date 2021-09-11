@@ -1,0 +1,15 @@
+[run]
+omit = 
+    *venv*
+
+[report]
+omit =
+    *tests*
+    *venv*
+    *__init__*.py*
+exclude_lines =
+    if __name__ == .__main__.:
+    def message
+    def reaction
+    self.app.run()
+
