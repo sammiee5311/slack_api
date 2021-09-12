@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+    slack-api:
+        container_name: slack-api
+        build: ./
+        image: slack-api
+        command: python bot.py
+        volumes: 
+          - ./:/slack-api
+
