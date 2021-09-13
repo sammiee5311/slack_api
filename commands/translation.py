@@ -1,4 +1,5 @@
 from api.translate import TranslationApi
+from config.commands.translation_languages import LANGUAGES
 from flask import request
 
 from commands.slash_command import SlashCommand
@@ -24,6 +25,10 @@ class TranslationCommand(SlashCommand):
 
         if "--lang" not in text:
             translated_text = self.translate_api.translate_text(text)
+        elif "--language" in text:
+            translated_text = ""
+            for abbre, country in LANGUAGES.items():
+                translated_text += f"{abbre}: {country} \n\n"
         else:
             text, lang = text.split("--lang")
             translated_text = self.translate_api.translate_text(text, lang.lstrip().rstrip())

@@ -8,10 +8,12 @@ sys.path.append("..")
 from unittest import TestCase
 
 from bot import SlackBot
+from commands.help import HelpCommnad
 from commands.message_count import MessageCountCommand
 from commands.translation import TranslationCommand
 from commands.vote import VoteCommand
 from commands.weather_info import WeatherInfoCommand
+from config.commands.help_text import HELP_TEXT
 from config.config import load_env
 from endpoints._flask import FlaskAppWrapper
 
@@ -30,7 +32,7 @@ class TestCommand(TestCase):
         self.flask.add_endpoint(
             endpoint="/weather", endpoint_name="weather", handler=weather_info_command.handler, methods=["POST"]
         )
-        response = self.client.post("/weather", data=dict(channel_id="test"))
+        response = self.client.post("/weather", data=dict(user_id=self.test_id, channel_id="test"))
 
         self.assertEqual(response.status_code, 200)
 
@@ -60,12 +62,22 @@ class TestCommand(TestCase):
 
     def test_translation_command(self):
         translation_command = TranslationCommand(self.bot)
-        texts = ["", "hi", "hi --lang ko"]
+        texts = ["", "hi", "hi --lang ko", "hi --lang scc", "--language"]
         self.flask.add_endpoint(
             endpoint="/translation", endpoint_name="translation", handler=translation_command.handler, methods=["POST"]
         )
 
         for text in texts:
             response = self.client.post("translation", data=dict(user_id=self.test_id, text=text))
+
+            self.assertEqual(response.status_code, 200)
+
+    def test_help_command(self):
+        help_command = HelpCommnad(self.bot)
+        texts = ["test"] + list(HELP_TEXT.keys())
+        self.flask.add_endpoint(endpoint="/help", endpoint_name="help", handler=help_command.handler, methods=["POST"])
+
+        for text in texts:
+            response = self.client.post("help", data=dict(user_id=self.test_id, text=text))
 
             self.assertEqual(response.status_code, 200)

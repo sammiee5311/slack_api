@@ -10,7 +10,6 @@ class VoteCommand(SlashCommand):
         self.client = bot.client
         self.get_leader = bot.get_leader
         self.vote_table = defaultdict(dict)
-        self.icon = bot.ICON
         self.is_vote_system_off = bot.get_current_vote_status
         self.number_of_people_voted = 0
         self.members = self.get_members()
@@ -72,14 +71,15 @@ class VoteCommand(SlashCommand):
             return
 
         self.vote_table[channel][user] = target
-        self.client.chat_postMessage(channel=channel, text=f"<@{user}> just voted now.")
+        text = f"<@{user}> just voted now."
+        self.send_message(text, channel)
         self.number_of_people_voted += 1
 
-        if self.number_of_people_voted == len(self.members) - 2 or target == "test":
+        if self.number_of_people_voted == len(self.members) - 3 or target == "test":
+            channel_lists = self.client.conversations_list().get("channels", [])
             leader = self.select_team_leader()
             if target == "test":
                 return
-            channel_lists = self.client.conversations_list().get("channels", [])
             for channel_list in channel_lists:
                 text = f"Team Leader is selected! \n\n" f"*New Team Leader is <@{leader}>!*"
                 self.send_message(text, channel_list.get("id"))

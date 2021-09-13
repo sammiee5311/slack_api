@@ -4,6 +4,7 @@ from collections import defaultdict
 import slack
 from flask import Flask
 
+from commands.help import HelpCommnad
 from commands.message_count import MessageCountCommand
 from commands.translation import TranslationCommand
 from commands.vote import VoteCommand
@@ -80,6 +81,7 @@ if __name__ == "__main__":
     message_count_command = MessageCountCommand(bot)
     weather_info_command = WeatherInfoCommand(bot)
     translation_command = TranslationCommand(bot)
+    help_command = HelpCommnad(bot)
 
     interactions = Interactions(bot)
 
@@ -104,6 +106,7 @@ if __name__ == "__main__":
     flask.add_endpoint(
         endpoint="/interactions", endpoint_name="interactions", handler=interactions.handler, methods=["POST"]
     )
+    flask.add_endpoint(endpoint="/help", endpoint_name="help", handler=help_command.handler, methods=["POST"])
 
     slack_wrapper.add_hanlders(event="message", handler=message_event.handler)
     slack_wrapper.add_hanlders(event="reaction_added", handler=reaction_event.handler)

@@ -1,15 +1,20 @@
 [run]
 omit = 
+    *tests*
     *venv*
+    *__init__*.py*
+    *_slack.py
 
 [report]
 omit =
     *tests*
     *venv*
     *__init__*.py*
+    *_slack.py
 exclude_lines =
     if __name__ == .__main__.:
     def message
     def reaction
     self.app.run()
+    for channel_list in channel_lists
 
