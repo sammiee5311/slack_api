@@ -4,12 +4,14 @@ from collections import defaultdict
 import slack
 from flask import Flask
 
+from commands.classify import ClassifyCommand
 from commands.help import HelpCommnad
 from commands.message_count import MessageCountCommand
 from commands.translation import TranslationCommand
 from commands.vote import VoteCommand
 from commands.weather_info import WeatherInfoCommand
 from config.config import load_env
+from deep.classification import ClassificationImage
 from endpoints._flask import FlaskAppWrapper, Interactions
 from endpoints._slack import MessageEvent, ReactionEvent, SlackEventWrapper
 from message import WelcomeMessage
@@ -18,11 +20,12 @@ from message import WelcomeMessage
 class SlackBot:
     def __init__(self):
         self.message_counts = defaultdict(int)
-        self.welcome_messages = defaultdict(dict)
         self.client = slack.WebClient(token=os.environ["SLACK_TOKEN"])
         self.BOT_ID = self.client.api_call("auth.test")["user_id"]
         self.ICON = "https://emoji.slack-edge.com/T02DBK38URZ/squirrel/465f40c0e0.png"
         self.welcome = WelcomeMessage()
+        self.classification = ClassificationImage()
+        self.classify_ids = defaultdict(lambda x: False)
         self.admin_ids = [os.environ["TEST_ID"]]
         self.leader = None
         self.current_vote_status = False  # False: No Leader
@@ -46,10 +49,13 @@ class SlackBot:
 
     def message(self, event):
         channel_id = event.get("channel")
-        if "files" in event:
-            image_url = event.get("files", "")[0].get("url_private_download")
         user_id = event.get("user", 0)
         text = event.get("text")
+
+        if "files" in event and user_id in self.classify_ids:
+            image_url = event.get("files", "")[0].get("url_private_download")
+            result = self.classification.classify_image(image_url)
+            self.send_message(f"Result is {result}.", f"@{user_id}")
 
         if user_id and self.BOT_ID != user_id:
             self.message_counts[user_id] += 1
@@ -82,6 +88,7 @@ if __name__ == "__main__":
     weather_info_command = WeatherInfoCommand(bot)
     translation_command = TranslationCommand(bot)
     help_command = HelpCommnad(bot)
+    classify_command = ClassifyCommand(bot)
 
     interactions = Interactions(bot)
 
@@ -107,6 +114,9 @@ if __name__ == "__main__":
         endpoint="/interactions", endpoint_name="interactions", handler=interactions.handler, methods=["POST"]
     )
     flask.add_endpoint(endpoint="/help", endpoint_name="help", handler=help_command.handler, methods=["POST"])
+    flask.add_endpoint(
+        endpoint="/classify", endpoint_name="classify", handler=classify_command.handler, methods=["POST"]
+    )
 
     slack_wrapper.add_hanlders(event="message", handler=message_event.handler)
     slack_wrapper.add_hanlders(event="reaction_added", handler=reaction_event.handler)
