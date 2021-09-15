@@ -55,7 +55,7 @@ class SlackBot:
         if "files" in event and user_id in self.classify_ids:
             image_url = event.get("files", "")[0].get("url_private_download")
             result = self.classification.classify_image(image_url)
-            self.send_message(f"Result is {result}.", f"@{user_id}")
+            self.send_message(f"Result is *{result}*.", f"@{user_id}")
 
         if user_id and self.BOT_ID != user_id:
             self.message_counts[user_id] += 1

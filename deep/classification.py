@@ -2,6 +2,8 @@ import os
 
 import requests
 
+from deep.models import Model
+
 
 class ClassificationImage:
     def get_image(self, image_url):
@@ -10,9 +12,9 @@ class ClassificationImage:
 
     def classify_image(self, image_url):
         """classify image by using CNN"""
+        model = Model()
         image = self.get_image(image_url)
 
-        with open("image.png", "w+b") as f:
-            f.write(bytearray(image))
+        predicted_value = model.predict(image)
 
-        return 1
+        return predicted_value
