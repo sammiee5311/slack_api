@@ -31,12 +31,14 @@ class TestCommand(TestCase):
 
     def test_weather_command(self):
         weather_info_command = WeatherInfoCommand(self.bot)
+        texts = ["test", "Seoul", "New York"]
         self.flask.add_endpoint(
             endpoint="/weather", endpoint_name="weather", handler=weather_info_command.handler, methods=["POST"]
         )
-        response = self.client.post("/weather", data=dict(user_id=self.test_id, channel_id="test"))
+        for text in texts:
+            response = self.client.post("/weather", data=dict(user_id=self.test_id, channel_id="test", text=text))
 
-        self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.status_code, 200)
 
     def test_vote_command(self):
         vote_command = VoteCommand(self.bot)
