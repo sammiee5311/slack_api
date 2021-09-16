@@ -9,7 +9,7 @@ class Model:
         self.names = NAMES
 
     def predict(self, image):
-        image = tf.image.decode_png(image)
+        image = tf.image.decode_image(image)
         image = tf.expand_dims(image, axis=0)
         image = image / 255
 

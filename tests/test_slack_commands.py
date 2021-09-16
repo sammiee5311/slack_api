@@ -8,6 +8,7 @@ sys.path.append("..")
 from unittest import TestCase
 
 from bot import SlackBot
+from commands.classify import ClassifyCommand
 from commands.help import HelpCommnad
 from commands.message_count import MessageCountCommand
 from commands.translation import TranslationCommand
@@ -15,6 +16,7 @@ from commands.vote import VoteCommand
 from commands.weather_info import WeatherInfoCommand
 from config.commands.help_text import HELP_TEXT
 from config.config import load_env
+from deep.classification import ClassificationImage
 from endpoints._flask import FlaskAppWrapper
 
 
@@ -74,10 +76,25 @@ class TestCommand(TestCase):
 
     def test_help_command(self):
         help_command = HelpCommnad(self.bot)
-        texts = ["test"] + list(HELP_TEXT.keys())
+        texts = ["", "test"] + list(HELP_TEXT.keys())
         self.flask.add_endpoint(endpoint="/help", endpoint_name="help", handler=help_command.handler, methods=["POST"])
 
         for text in texts:
             response = self.client.post("help", data=dict(user_id=self.test_id, text=text))
 
             self.assertEqual(response.status_code, 200)
+
+    def test_classify_command(self):
+        classify_command = ClassifyCommand(self.bot)
+        classification = ClassificationImage()
+        texts = ["", "--off", '--on']
+        self.flask.add_endpoint(
+            endpoint='/classify', endpoint_name='classify', handler=classify_command.handler, methods=["POST"]
+        )
+
+        for text in texts:
+            response = self.client.post('classify', data=dict(user_id=self.test_id, text=text))
+
+            self.assertEqual(response.status_code, 200)
+        
+        classification.classify_image('https://images.unsplash.com/photo-1537151625747-768eb6cf92b2?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=932&q=80')
