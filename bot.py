@@ -3,6 +3,7 @@ from collections import defaultdict
 
 import slack
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 
 from commands.classify import ClassifyCommand
 from commands.help import HelpCommnad
@@ -48,7 +49,6 @@ class SlackBot:
         )
 
     def message(self, event):
-        channel_id = event.get("channel")
         user_id = event.get("user", 0)
         text = event.get("text")
 
@@ -82,6 +82,8 @@ if __name__ == "__main__":
     load_env()
     bot = SlackBot()
     flask = FlaskAppWrapper(Flask(__name__))
+
+    db = SQLAlchemy(flask.app)
 
     vote_command = VoteCommand(bot)
     message_count_command = MessageCountCommand(bot)

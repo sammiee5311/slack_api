@@ -16,6 +16,8 @@ class EndpointAction:
 class FlaskAppWrapper:
     def __init__(self, flask):
         self.app = flask
+        self.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///slack-api.db"
+        self.app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     def run(self):
         self.app.run()
