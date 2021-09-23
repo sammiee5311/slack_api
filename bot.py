@@ -3,15 +3,17 @@ from collections import defaultdict
 
 import slack
 from flask import Flask
-from flask_sqlalchemy import SQLAlchemy
 
 from commands.classify import ClassifyCommand
+from commands.database import DatabaseCommand
 from commands.help import HelpCommnad
 from commands.message_count import MessageCountCommand
 from commands.translation import TranslationCommand
 from commands.vote import VoteCommand
 from commands.weather_info import WeatherInfoCommand
 from config.config import load_env
+from database.control import ControlDatabase
+from database.models import People, db
 from deep.classification import ClassificationImage
 from endpoints._flask import FlaskAppWrapper, Interactions
 from endpoints._slack import MessageEvent, ReactionEvent, SlackEventWrapper
@@ -20,13 +22,11 @@ from message import WelcomeMessage
 
 class SlackBot:
     def __init__(self):
-        self.message_counts = defaultdict(int)
         self.client = slack.WebClient(token=os.environ["SLACK_TOKEN"])
         self.BOT_ID = self.client.api_call("auth.test")["user_id"]
         self.ICON = "https://emoji.slack-edge.com/T02DBK38URZ/squirrel/465f40c0e0.png"
         self.welcome = WelcomeMessage()
         self.classification = ClassificationImage()
-        self.classify_ids = defaultdict(lambda x: False)
         self.admin_ids = [os.environ["TEST_ID"]]
         self.leader = None
         self.current_vote_status = False  # False: No Leader
@@ -51,14 +51,15 @@ class SlackBot:
     def message(self, event):
         user_id = event.get("user", 0)
         text = event.get("text")
+        user = People.query.filter_by(user_id=user_id).first()
 
-        if "files" in event and user_id in self.classify_ids:
+        if "files" in event and user.ai_activation:
             image_url = event.get("files", "")[0].get("url_private_download")
             result = self.classification.classify_image(image_url)
             self.send_message(f"Result is *{result}*.", f"@{user_id}")
 
         if user_id and self.BOT_ID != user_id:
-            self.message_counts[user_id] += 1
+            user.message_cnt = user.message_cnt + 1
 
             if text.lower() == "start":
                 self.welcome.send_message(f"@{user_id}", user_id)
@@ -83,14 +84,16 @@ if __name__ == "__main__":
     bot = SlackBot()
     flask = FlaskAppWrapper(Flask(__name__))
 
-    db = SQLAlchemy(flask.app)
+    db.init_app(flask.app)
+    db_control = ControlDatabase(db)
 
     vote_command = VoteCommand(bot)
     message_count_command = MessageCountCommand(bot)
     weather_info_command = WeatherInfoCommand(bot)
     translation_command = TranslationCommand(bot)
     help_command = HelpCommnad(bot)
-    classify_command = ClassifyCommand(bot)
+    classify_command = ClassifyCommand(bot, db_control)
+    database_command = DatabaseCommand(bot, db_control)
 
     interactions = Interactions(bot)
 
@@ -119,6 +122,7 @@ if __name__ == "__main__":
     flask.add_endpoint(
         endpoint="/classify", endpoint_name="classify", handler=classify_command.handler, methods=["POST"]
     )
+    flask.add_endpoint(endpoint='/db', endpoint_name='database', handler=database_command.handler, methods=['POST'])
 
     slack_wrapper.add_hanlders(event="message", handler=message_event.handler)
     slack_wrapper.add_hanlders(event="reaction_added", handler=reaction_event.handler)
