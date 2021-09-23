@@ -15,6 +15,7 @@ This is basic program of slack api.
 - translation
 - vote
 - weather info
+- db
 
 ## interactions
 - vote for a new team leader
