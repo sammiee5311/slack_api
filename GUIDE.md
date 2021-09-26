@@ -13,7 +13,7 @@
     - `/translation`
     - `/help`
     - `/classify`
-    - `db`
+    - `/db`
 
 ## Interactivity & Shortcuts
 - create a shortcut with `vote_team_leader` callback id 
