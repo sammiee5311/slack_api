@@ -28,15 +28,19 @@ class SlackBot:
         self.welcome = WelcomeMessage()
         self.classification = ClassificationImage()
         self.admin_ids = [os.environ["TEST_ID"]]
-        self.leader = None
         self.current_vote_status = False  # False: No Leader
 
     def set_leader(self, leader):
-        self.leader = leader
         self.current_vote_status = True if leader else None
 
-    def get_leader(self):
-        return self.leader
+        if leader:
+            user = People.query.filter_by(user_id=leader).first()
+            user.is_leader = True
+        else:
+            user = People.query.filter_by(is_leader=True).first()
+            user.is_leader = False
+
+        db.session.commit()
 
     def get_current_vote_status(self):
         return self.current_vote_status

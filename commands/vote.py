@@ -3,27 +3,18 @@ from collections import defaultdict
 from flask import request
 
 from commands.slash_command import SlashCommand
+from database.models import People, db
 
 
 class VoteCommand(SlashCommand):
     def __init__(self, bot):
         self.client = bot.client
-        self.get_leader = bot.get_leader
         self.vote_table = defaultdict(dict)
         self.is_vote_system_off = bot.get_current_vote_status
         self.number_of_people_voted = 0
-        self.members = self.get_members()
+        self.members = People.query.all()
         self.send_message = bot.send_message
         self.set_leader = bot.set_leader
-
-    def get_members(self):
-        result = self.client.users_list().get("members")
-        members = []
-
-        for member in result:
-            members.append(member["name"])
-
-        return members + ["test"]
 
     def select_team_leader(self):
         user_cnt = defaultdict(int)
@@ -37,6 +28,18 @@ class VoteCommand(SlashCommand):
         self.vote_table.clear()
 
         return self.get_leader()
+    
+    def is_user_not_exists_in_database(user):
+        return False if db.session.query(People.query.filter_by(name=user).exists()).scalar() else True
+    
+    def get_leader():
+        try:
+            leader = People.query.filter_by(is_leader=True).first().name
+        except:
+            leader = None
+        
+        return leader
+        
 
     def handler(self):
         data = request.form
@@ -60,7 +63,7 @@ class VoteCommand(SlashCommand):
             self.send_message(text, channel)
             return
 
-        if target not in self.members:
+        if self.is_user_not_exists_in_database(target):
             text = f"Please, choose a exist user."
             self.send_message(text, channel)
             return
