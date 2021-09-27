@@ -7,6 +7,7 @@ from flask import Flask
 from commands.classify import ClassifyCommand
 from commands.database import DatabaseCommand
 from commands.help import HelpCommnad
+from commands.kubeflow import KubeflowCommand
 from commands.message_count import MessageCountCommand
 from commands.translation import TranslationCommand
 from commands.vote import VoteCommand
@@ -59,8 +60,11 @@ class SlackBot:
 
         if "files" in event and user.ai_activation:
             image_url = event.get("files", "")[0].get("url_private_download")
-            result = self.classification.classify_image(image_url)
-            self.send_message(f"Result is *{result}*.", f"@{user_id}")
+            try:
+                result = self.classification.classify_image(image_url)
+                self.send_message(f"Result is *{result}*.", f"@{user_id}")
+            except:
+                self.send_message(f"The image you sent does not fit for classification.", f"@{user_id}")
 
         if user_id and self.BOT_ID != user_id:
             user.message_cnt = user.message_cnt + 1
@@ -98,6 +102,7 @@ if __name__ == "__main__":
     help_command = HelpCommnad(bot)
     classify_command = ClassifyCommand(bot, db_control)
     database_command = DatabaseCommand(bot, db_control)
+    kubeflow_command = KubeflowCommand(bot)
 
     interactions = Interactions(bot)
 
@@ -127,6 +132,7 @@ if __name__ == "__main__":
         endpoint="/classify", endpoint_name="classify", handler=classify_command.handler, methods=["POST"]
     )
     flask.add_endpoint(endpoint='/db', endpoint_name='database', handler=database_command.handler, methods=['POST'])
+    flask.add_endpoint(endpoint='/kubeflow', endpoint_name='kubeflow', handler=kubeflow_command.handler, methods=["POST"])
 
     slack_wrapper.add_hanlders(event="message", handler=message_event.handler)
     slack_wrapper.add_hanlders(event="reaction_added", handler=reaction_event.handler)

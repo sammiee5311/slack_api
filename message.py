@@ -6,6 +6,7 @@ import slack
 
 
 class Message(ABC):
+    DIVIDER = {"type": "divider"}
     @abstractmethod
     def send_message(self):
         """send message to slack"""
@@ -16,8 +17,6 @@ class WelcomeMessage(Message):
         "type": "section",
         "text": {"type": "mrkdwn", "text": ("Welcome to test channel! \n\n" "*Get started by comepleting the tasks!*")},
     }
-
-    DIVIDER = {"type": "divider"}
 
     def __init__(self):
         self.icon_emoji = ":robot_face:"
@@ -52,3 +51,34 @@ class WelcomeMessage(Message):
         )
 
         return {"type": "section", "text": {"type": "mrkdwn", "text": text}}
+
+
+class KubeflowMessage(Message):
+    def __init__(self, client):
+        self.client = client
+
+    def send_message(self, channel, text, info, link):
+        self.info = info
+        self.link = link
+        self.text = text
+        self.START_TEXT = {
+            "type": "section",
+            "text": {"type": "mrkdwn", "text": text},
+            }
+        message = self.get_message(channel)
+        self.client.chat_postMessage(**message)
+
+    def get_message(self, channel):
+        return {
+            "channel": channel,
+            "username": "Kubeflow Alert",
+            "blocks": [self.START_TEXT, self.DIVIDER, self.get_info(), self.DIVIDER, self.get_button()],
+        }
+
+    def get_info(self):
+        text = self.info
+
+        return {"type": "section", "text": {"type": "mrkdwn", "text": text}}
+
+    def get_button(self):
+        return {"type": "actions", "elements": [{"type": "button", "text": { "type": "plain_text", "text": f"check {self.text.split(' ')[-1][:-1]}"}, "value": "click", "url": self.link }] }

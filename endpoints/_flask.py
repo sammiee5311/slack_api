@@ -32,7 +32,6 @@ class Interactions:
         self.icon = bot.ICON
         self.admin_ids = bot.admin_ids
         self.send_message = bot.send_message
-        self.get_leader = bot.get_leader
         self.current_vote_status = bot.current_vote_status
         self.set_leader = bot.set_leader
 
