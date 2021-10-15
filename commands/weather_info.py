@@ -13,7 +13,7 @@ class WeatherInfoCommand(SlashCommand):
     def handler(self):
         data = request.form
         channel = f"@{data.get('user_id', '')}"
-        city = data.get('text', '').lstrip().rstrip()
+        city = data.get('text', '').lstrip().rstrip().title()
 
         if city not in self.weather_api.cities:
             self.send_message('Please write supported city name.', channel)

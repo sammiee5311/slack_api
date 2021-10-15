@@ -1,3 +1,4 @@
+from bot import SlackBot
 from flask import request
 
 from commands.slash_command import SlashCommand
@@ -5,7 +6,7 @@ from database.models import People
 
 
 class ClassifyCommand(SlashCommand):
-    def __init__(self, bot, db):
+    def __init__(self, bot: SlackBot, db):
         self.client = bot.client
         self.send_message = bot.send_message
         self.database = db

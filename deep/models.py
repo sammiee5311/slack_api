@@ -5,7 +5,10 @@ from config.commands.names import IMAGE_SIZE, NAMES
 
 class Model:
     def __init__(self):
-        self.model = tf.keras.models.load_model('./config/model.h5')
+        try:
+            self.model = tf.keras.models.load_model('./config/model.h5')
+        except FileNotFoundError:
+            print('Model does not exist.')
         self.names = NAMES
 
     def predict(self, image):

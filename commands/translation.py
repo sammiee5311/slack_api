@@ -1,4 +1,5 @@
 from api.translate import TranslationApi
+from bot import SlackBot
 from config.commands.translation_languages import LANGUAGES
 from flask import request
 
@@ -6,7 +7,7 @@ from commands.slash_command import SlashCommand
 
 
 class TranslationCommand(SlashCommand):
-    def __init__(self, bot):
+    def __init__(self, bot: SlackBot):
         self.client = bot.client
         self.icon = bot.ICON
         self.send_meesage = bot.send_message

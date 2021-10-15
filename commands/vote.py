@@ -1,5 +1,6 @@
 from collections import defaultdict
 
+from bot import SlackBot
 from flask import request
 
 from commands.slash_command import SlashCommand
@@ -7,12 +8,11 @@ from database.models import People, db
 
 
 class VoteCommand(SlashCommand):
-    def __init__(self, bot):
+    def __init__(self, bot: SlackBot):
         self.client = bot.client
         self.vote_table = defaultdict(dict)
         self.is_vote_system_off = bot.get_current_vote_status
         self.number_of_people_voted = 0
-        self.members = People.query.all()
         self.send_message = bot.send_message
         self.set_leader = bot.set_leader
 
@@ -29,10 +29,10 @@ class VoteCommand(SlashCommand):
 
         return self.get_leader()
     
-    def is_user_not_exists_in_database(user):
-        return False if db.session.query(People.query.filter_by(name=user).exists()).scalar() else True
+    def is_user_not_exists_in_database(self, user):
+        return False if db.session.query(People.query.filter_by(user_name=user.replace('@','')).exists()).scalar() else True
     
-    def get_leader():
+    def get_leader(self):
         try:
             leader = People.query.filter_by(is_leader=True).first().name
         except:
@@ -78,7 +78,7 @@ class VoteCommand(SlashCommand):
         self.send_message(text, channel)
         self.number_of_people_voted += 1
 
-        if self.number_of_people_voted == len(self.members) - 3 or target == "test":
+        if self.number_of_people_voted == len(People.query.all()) - 3 or target == "test":
             channel_lists = self.client.conversations_list().get("channels", [])
             leader = self.select_team_leader()
             if target == "test":

@@ -1,3 +1,4 @@
+from bot import SlackBot
 from config.commands.help_text import HELP_TEXT
 from flask import request
 
@@ -5,7 +6,7 @@ from commands.slash_command import SlashCommand
 
 
 class HelpCommnad(SlashCommand):
-    def __init__(self, bot):
+    def __init__(self, bot: SlackBot):
         self.client = bot.client
         self.send_message = bot.send_message
         self.commands = HELP_TEXT
