@@ -14,6 +14,8 @@
     - `/help`
     - `/classify`
     - `/db`
+    - `/help`
+    - `/kubeflow`
 
 ## Interactivity & Shortcuts
 - create a shortcut with `vote_team_leader` callback id 

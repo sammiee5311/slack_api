@@ -16,6 +16,8 @@ This is basic program of slack api.
 - vote
 - weather info
 - db
+- help
+- kubeflow
 
 ## interactions
 - vote for a new team leader
