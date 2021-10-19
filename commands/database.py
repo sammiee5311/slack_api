@@ -30,7 +30,7 @@ class DatabaseCommand(SlashCommand):
             if target == 'team':
                 team = data[1]
             
-            query = dict(name=user_name, team=team, user_id=user)
+            query = dict(uesr_name=user_name, team=team, user_id=user)
             self.db_control.insert_data(query, People)
 
         self.send_meesage("Done", channel)

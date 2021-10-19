@@ -24,6 +24,7 @@ class VoteCommand(SlashCommand):
                 user_cnt[user] += 1
 
         user_cnt = sorted(user_cnt.items(), key=lambda x: (x[0], -x[1]))
+        print(user_cnt)
         self.set_leader(user_cnt[0][0])
         self.vote_table.clear()
 
@@ -80,9 +81,9 @@ class VoteCommand(SlashCommand):
 
         if self.number_of_people_voted == len(People.query.all()) - 3 or target == "test":
             channel_lists = self.client.conversations_list().get("channels", [])
-            leader = self.select_team_leader()
             if target == "test":
                 return
+            leader = self.select_team_leader()
             for channel_list in channel_lists:
                 text = f"Team Leader is selected! \n\n" f"*New Team Leader is <@{leader}>!*"
                 self.send_message(text, channel_list.get("id"))

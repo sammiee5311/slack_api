@@ -14,20 +14,33 @@ from commands.message_count import MessageCountCommand
 from commands.translation import TranslationCommand
 from commands.vote import VoteCommand
 from commands.weather_info import WeatherInfoCommand
+from config import config
 from config.commands.help_text import HELP_TEXT
-from config.config import load_env
+from database.control import ControlDatabase
+from database.models import People, db
 from deep.classification import ClassificationImage
-from endpoints._flask import FlaskAppWrapper
+from flask_sqlalchemy import SQLAlchemy
+
+from tests.test_flask import FlaskAppWrapper
 
 
 class TestCommand(TestCase):
     def setUp(self):
-        load_env()
+        config.load_env()
         self.bot = SlackBot()
         self.flask = FlaskAppWrapper(Flask(__name__))
-        self.flask.app.config["TESTING"] = True
         self.client = self.flask.app.test_client()
         self.test_id = os.environ["TEST_ID"]
+        self.database_setUp()
+    
+    def database_setUp(self):
+        db.init_app(self.flask.app)
+        self.flask.app.app_context().push()
+        with self.flask.app.app_context():
+            self.db_control = ControlDatabase(db)
+            self.db_control.create_database()
+            query = dict(user_name='test', team='test', user_id=self.test_id)
+            self.db_control.insert_data(query, People)
 
     def test_weather_command(self):
         weather_info_command = WeatherInfoCommand(self.bot)
@@ -87,7 +100,7 @@ class TestCommand(TestCase):
             self.assertEqual(response.status_code, 200)
 
     def test_classify_command(self):
-        classify_command = ClassifyCommand(self.bot)
+        classify_command = ClassifyCommand(self.bot, self.db_control)
         classification = ClassificationImage()
         texts = ["", "--off", '--on']
         self.flask.add_endpoint(

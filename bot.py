@@ -55,7 +55,7 @@ class SlackBot:
 
         if user_id and self.BOT_ID != user_id:
             user.message_cnt = user.message_cnt + 1
-            # db.session.commit()  ## Need to commit every hou
+            # db.session.commit()  ## Need to commit every hour
 
             if text.lower() == "start":
                 self.welcome.send_message(f"@{user_id}", user_id)

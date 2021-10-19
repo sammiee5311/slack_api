@@ -10,13 +10,13 @@ from commands.message_count import MessageCountCommand
 from commands.translation import TranslationCommand
 from commands.vote import VoteCommand
 from commands.weather_info import WeatherInfoCommand
-from config.config import load_env
+from config import config
 from database.control import ControlDatabase
 from database.models import db
 from endpoints._flask import FlaskAppWrapper, Interactions
 from endpoints._slack import MessageEvent, ReactionEvent, SlackEventWrapper
 
-load_env()
+config.load_env()
 bot = SlackBot()
 flask = FlaskAppWrapper(Flask(__name__))
 

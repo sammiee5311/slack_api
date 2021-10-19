@@ -8,16 +8,16 @@ sys.path.append("..")
 from unittest import TestCase
 
 from bot import SlackBot
-from config.config import load_env
-from endpoints._flask import FlaskAppWrapper
+from config import config
+
+from tests.test_flask import FlaskAppWrapper
 
 
 class TestWelcomeMessage(TestCase):
     def setUp(self):
-        load_env()
+        config.load_env()
         self.bot = SlackBot()
         self.flask = FlaskAppWrapper(Flask(__name__))
-        self.flask.app.config["TESTING"] = True
         self.client = self.flask.app.test_client()
         self.test_id = os.environ["TEST_ID"]
 
