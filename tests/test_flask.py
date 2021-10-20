@@ -16,7 +16,7 @@ class FlaskAppWrapper:
         self.app = flask
         self.app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///test-slack-api.db"
         self.app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-        # self.app.config["TESTING"] = True
+        self.app.config["TESTING"] = True
 
     def run(self):
         self.app.run()

@@ -1,0 +1,45 @@
+name: UnitTest
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    name: Unit Test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source repo
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.9
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Initiate unittest
+        env:
+          SLACK_TOKEN: ${{ secrets.SLACK_TOKEN }}
+          SIGNING_SECRET: ${{ secrets.SIGNING_SECRET }}
+          WEATHER_API_KEY: ${{ secrets.WEATHER_API_KEY }}
+          DOC_LINK: ${{ secrets.DOC_LINK }}
+          TEST_ID: ${{ secrets.TEST_ID }}
+          NAMESPACE: ${{ secrets.NAMESPACE }}
+          URI: ${{ secrets.URI }}
+        run: coverage run -m unittest
+
+      - name: Slack notify
+        if: always()
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_ICON_EMOJI: ':bell:'
+          SLACK_CHANNEL: dev
+          SLACK_MESSAGE: 'Upload & Run pipeline - ${{job.status}}'
+          SLACK_USERNAME: Github Alert
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
