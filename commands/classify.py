@@ -1,17 +1,19 @@
 from bot import SlackBot
 from flask import request
+from flask_sqlalchemy import SQLAlchemy
+from slack import WebClient
 
 from commands.slash_command import SlashCommand
 from database.models import People
 
 
 class ClassifyCommand(SlashCommand):
-    def __init__(self, bot: SlackBot, db):
-        self.client = bot.client
+    def __init__(self, bot: SlackBot, db: SQLAlchemy):
+        self.client: WebClient = bot.client
         self.send_message = bot.send_message
-        self.database = db
+        self.database: SQLAlchemy = db
     
-    def set_turn_on_or_off(self, state, user):
+    def set_turn_on_or_off(self, state: bool, user: str) -> None:
         user = People.query.filter_by(user_id=user).first()
         user.ai_activation = state
         self.database.db.session.commit()

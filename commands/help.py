@@ -1,15 +1,16 @@
 from bot import SlackBot
 from config.commands.help_text import HELP_TEXT
 from flask import request
+from slack import WebClient
 
 from commands.slash_command import SlashCommand
 
 
 class HelpCommnad(SlashCommand):
     def __init__(self, bot: SlackBot):
-        self.client = bot.client
+        self.client: WebClient = bot.client
         self.send_message = bot.send_message
-        self.commands = HELP_TEXT
+        self.commands: str = HELP_TEXT
 
     def handler(self):
         data = request.form

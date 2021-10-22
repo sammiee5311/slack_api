@@ -10,14 +10,14 @@ from message import WelcomeMessage
 class SlackBot:
     def __init__(self):
         self.client = slack.WebClient(token=os.environ["SLACK_TOKEN"])
-        self.BOT_ID = self.client.api_call("auth.test")["user_id"]
+        self.BOT_ID: str = self.client.api_call("auth.test")["user_id"]
         self.ICON = "https://emoji.slack-edge.com/T02DBK38URZ/squirrel/465f40c0e0.png"
         self.welcome = WelcomeMessage()
         self.classification = ClassificationImage()
         self.admin_ids = [os.environ["TEST_ID"]]
         self.current_vote_status = False  # False: No Leader
 
-    def set_leader(self, leader):
+    def set_leader(self, leader: str):
         self.current_vote_status = True if leader else None
 
         if leader:
@@ -29,10 +29,10 @@ class SlackBot:
 
         db.session.commit()
 
-    def get_current_vote_status(self):
+    def get_current_vote_status(self) -> bool:
         return self.current_vote_status
 
-    def send_message(self, text, channel_id):
+    def send_message(self, text: str, channel_id: str):
         self.client.chat_postMessage(
             channel=channel_id,
             text=text,

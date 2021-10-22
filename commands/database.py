@@ -1,16 +1,18 @@
 from bot import SlackBot
 from flask import request
+from slack import WebClient
 
 from commands.slash_command import SlashCommand
+from database.control import ControlDatabase
 from database.models import People
 
 
 class DatabaseCommand(SlashCommand):
-    def __init__(self, bot: SlackBot, db_control):
-        self.client = bot.client
-        self.icon = bot.ICON
+    def __init__(self, bot: SlackBot, db_control: ControlDatabase):
+        self.client: WebClient = bot.client
+        self.icon: str = bot.ICON
+        self.db_control: ControlDatabase = db_control
         self.send_meesage = bot.send_message
-        self.db_control = db_control
 
     def handler(self):
         data = request.form

@@ -1,12 +1,13 @@
 from api.weather import WeatherApi
 from flask import request
+from slack import WebClient
 
 from commands.slash_command import SlashCommand
 
 
 class WeatherInfoCommand(SlashCommand):
     def __init__(self, bot):
-        self.client = bot.client
+        self.client: WebClient = bot.client
         self.send_message = bot.send_message
         self.weather_api = WeatherApi()
 

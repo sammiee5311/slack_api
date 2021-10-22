@@ -7,7 +7,7 @@ class TranslationApi:
     def __init__(self):
         self.translator = googletrans.Translator()
 
-    def translate_text(self, text, lang="en"):
+    def translate_text(self, text: str, lang: str="en") -> str:
         if lang not in LANGUAGES:
             return "Please, write supported language. To see supported languages, type /translation --languages"
         else:

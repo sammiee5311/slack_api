@@ -1,7 +1,9 @@
 from collections import defaultdict
+from typing import Callable, Union
 
 from bot import SlackBot
 from flask import request
+from slack import WebClient
 
 from commands.slash_command import SlashCommand
 from database.models import People, db
@@ -9,14 +11,14 @@ from database.models import People, db
 
 class VoteCommand(SlashCommand):
     def __init__(self, bot: SlackBot):
-        self.client = bot.client
+        self.client: WebClient = bot.client
         self.vote_table = defaultdict(dict)
         self.is_vote_system_off = bot.get_current_vote_status
         self.number_of_people_voted = 0
         self.send_message = bot.send_message
         self.set_leader = bot.set_leader
 
-    def select_team_leader(self):
+    def select_team_leader(self) -> Callable[[], Union[str, None]]:
         user_cnt = defaultdict(int)
 
         for channel in self.vote_table.keys():
@@ -24,20 +26,19 @@ class VoteCommand(SlashCommand):
                 user_cnt[user] += 1
 
         user_cnt = sorted(user_cnt.items(), key=lambda x: (x[0], -x[1]))
-        print(user_cnt)
         self.set_leader(user_cnt[0][0])
         self.vote_table.clear()
 
         return self.get_leader()
     
-    def is_user_not_exists_in_database(self, user):
+    def is_user_not_exists_in_database(self, user:str) -> bool:
         return False if db.session.query(People.query.filter_by(user_name=user.replace('@','')).exists()).scalar() else True
     
-    def get_leader(self):
+    def get_leader(self) -> Union[str, None]:
         try:
             leader = People.query.filter_by(is_leader=True).first().name
         except:
-            leader = None
+            leader = False
         
         return leader
         

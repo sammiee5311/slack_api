@@ -5,19 +5,20 @@ import kfp
 from bot import SlackBot
 from flask import request
 from google_drive_downloader import GoogleDriveDownloader as gdd
-from message import KubeflowMessage
+from message import KubeflowMessage, Message
+from slack import WebClient
 
 from commands.slash_command import SlashCommand
 
 
 class KubeflowCommand(SlashCommand):
     def __init__(self, bot: SlackBot):
-        self.bot_client = bot.client
+        self.bot_client: WebClient = bot.client
         self.cookies = os.environ["COOKIES"]
         self.uri = os.environ['URI']
         self.namespace = os.environ['NAMESPACE']
         self.kube_client = kfp.Client(host=f'http://{self.uri}/pipeline', namespace=self.namespace, cookies=self.cookies)
-        self.kube_info = KubeflowMessage(self.bot_client)
+        self.kube_info: Message = KubeflowMessage(self.bot_client)
 
     def handler(self):
         data = request.form
