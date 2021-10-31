@@ -4,7 +4,8 @@ from bot import SlackBot
 from commands.classify import ClassifyCommand
 from commands.database import DatabaseCommand
 from commands.help import HelpCommnad
-from commands.kubeflow import KubeflowCommand
+
+# from commands.kubeflow import KubeflowCommand
 from commands.message_count import MessageCountCommand
 from commands.translation import TranslationCommand
 from commands.vote import VoteCommand
@@ -29,7 +30,7 @@ translation_command = TranslationCommand(bot)
 help_command = HelpCommnad(bot)
 classify_command = ClassifyCommand(bot, db_control)
 database_command = DatabaseCommand(bot, db_control)
-kubeflow_command = KubeflowCommand(bot)
+# kubeflow_command = KubeflowCommand(bot)
 
 interactions = Interactions(bot)
 
@@ -59,7 +60,7 @@ flask.add_endpoint(
     endpoint="/classify", endpoint_name="classify", handler=classify_command.handler, methods=["POST"]
 )
 flask.add_endpoint(endpoint='/db', endpoint_name='database', handler=database_command.handler, methods=['POST'])
-flask.add_endpoint(endpoint='/kubeflow', endpoint_name='kubeflow', handler=kubeflow_command.handler, methods=["POST"])
+# flask.add_endpoint(endpoint='/kubeflow', endpoint_name='kubeflow', handler=kubeflow_command.handler, methods=["POST"])
 
 slack_wrapper.add_hanlders(event="message", handler=message_event.handler)
 slack_wrapper.add_hanlders(event="reaction_added", handler=reaction_event.handler)
