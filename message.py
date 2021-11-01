@@ -1,20 +1,19 @@
 import os
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from collections import defaultdict
-from typing import Dict, List, Union
+from typing import Dict, List, Protocol, Union
 
 import slack
 from slack import WebClient
 
 
-class Message(ABC):
+class Message(Protocol):
     DIVIDER = {"type": "divider"}
-    @abstractmethod
     def send_message(self):
-        """send message to slack"""
+        ...
 
 
-class WelcomeMessage(Message):
+class WelcomeMessage:
     START_TEXT = {
         "type": "section",
         "text": {"type": "mrkdwn", "text": ("Welcome to test channel! \n\n" "*Get started by comepleting the tasks!*")},
@@ -34,13 +33,13 @@ class WelcomeMessage(Message):
 
         self.messages[channel][user] = self
 
-    def get_message(self, channel: str) -> Dict[str, Union[str, List[str]]]:
+    def get_message(self, channel: str) -> Dict[str, Union[str, List[Union[str, Dict[str, str]]]]]:
         return {
             "ts": self.timestamp,
             "channel": channel,
             "username": "Welcome Bot!",
             "icon_emoji": self.icon_emoji,
-            "blocks": [self.START_TEXT, self.DIVIDER, self._get_reaction_task()],
+            "blocks": [self.START_TEXT, Message.DIVIDER, self._get_reaction_task()],
         }
 
     def _get_reaction_task(self) -> Dict[str, Dict[str, str]]:
@@ -55,7 +54,7 @@ class WelcomeMessage(Message):
         return {"type": "section", "text": {"type": "mrkdwn", "text": text}}
 
 
-class KubeflowMessage(Message):
+class KubeflowMessage:
     def __init__(self, client: WebClient):
         self.client: WebClient = client
 
@@ -70,11 +69,11 @@ class KubeflowMessage(Message):
         message = self.get_message(channel)
         self.client.chat_postMessage(**message)
 
-    def get_message(self, channel: str) -> Dict[str, Union[str, List[str]]]:
+    def get_message(self, channel: str) -> Dict[str, Union[str, List[Union[str, Dict[str, str]]]]]:
         return {
             "channel": channel,
             "username": "Kubeflow Alert",
-            "blocks": [self.START_TEXT, self.DIVIDER, self.get_info(), self.DIVIDER, self.get_button()],
+            "blocks": [self.START_TEXT, Message.DIVIDER, self.get_info(), Message.DIVIDER, self.get_button()],
         }
 
     def get_info(self) -> Dict[str, Dict[str, str]]:
