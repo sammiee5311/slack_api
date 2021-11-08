@@ -1,3 +1,6 @@
+from dataclasses import dataclass, field
+from typing import List
+
 from flask import Flask
 
 from bot import SlackBot
@@ -6,6 +9,7 @@ from commands.database import DatabaseCommand
 from commands.help import HelpCommnad
 from commands.kubeflow import KubeflowCommand
 from commands.message_count import MessageCountCommand
+from commands.slash_command import SlashCommand
 from commands.translation import TranslationCommand
 from commands.vote import VoteCommand
 from commands.weather_info import WeatherInfoCommand
@@ -15,6 +19,15 @@ from database.models import db
 from endpoints._flask import FlaskAppWrapper, Interactions
 from endpoints._slack import MessageEvent, ReactionEvent, SlackEventWrapper
 
+
+@dataclass
+class FlaskEndpointCommand:
+    command: SlashCommand
+    endpoint: str
+    endpoint_name: str
+    methods: List = field(default_factory=lambda: ["POST"])
+
+
 config.load_env()
 bot = SlackBot()
 flask = FlaskAppWrapper(Flask(__name__))
@@ -22,14 +35,17 @@ flask = FlaskAppWrapper(Flask(__name__))
 db.init_app(flask.app)
 db_control = ControlDatabase(db)
 
-vote_command = VoteCommand(bot)
-message_count_command = MessageCountCommand(bot)
-weather_info_command = WeatherInfoCommand(bot)
-translation_command = TranslationCommand(bot)
-help_command = HelpCommnad(bot)
-classify_command = ClassifyCommand(bot, db_control)
-database_command = DatabaseCommand(bot, db_control)
-kubeflow_command = KubeflowCommand(bot)
+vote_command = FlaskEndpointCommand(command=VoteCommand(bot), endpoint="/vote", endpoint_name='vote')
+message_count_command = FlaskEndpointCommand(command=MessageCountCommand(bot), endpoint="/message-count", endpoint_name="message-count")
+weather_info_command = FlaskEndpointCommand(WeatherInfoCommand(bot), endpoint="/weather", endpoint_name="weather")
+translation_command = FlaskEndpointCommand(TranslationCommand(bot), endpoint="/translation", endpoint_name="translation")
+help_command = FlaskEndpointCommand(HelpCommnad(bot), endpoint="/help", endpoint_name="help")
+classify_command = FlaskEndpointCommand(ClassifyCommand(bot, db_control), endpoint="/classify", endpoint_name="classify")
+database_command = FlaskEndpointCommand(DatabaseCommand(bot, db_control), endpoint="/db", endpoint_name="database")
+kubeflow_command = FlaskEndpointCommand(KubeflowCommand(bot), endpoint="/kubeflow", endpoint_name="kubeflow")
+
+command_endpoints = [vote_command, message_count_command, weather_info_command, translation_command, 
+                     help_command, classify_command, database_command, kubeflow_command]
 
 interactions = Interactions(bot)
 
@@ -38,28 +54,11 @@ slack_wrapper = SlackEventWrapper(flask.app)
 message_event = MessageEvent(bot)
 reaction_event = ReactionEvent(bot)
 
-flask.add_endpoint(
-    endpoint="/message-count",
-    endpoint_name="message-count",
-    handler=message_count_command.handler,
-    methods=["POST"],
-)
-flask.add_endpoint(
-    endpoint="/weather", endpoint_name="weather", handler=weather_info_command.handler, methods=["POST"]
-)
-flask.add_endpoint(
-    endpoint="/translation", endpoint_name="translation", handler=translation_command.handler, methods=["POST"]
-)
-flask.add_endpoint(endpoint="/vote", endpoint_name="vote", handler=vote_command.handler, methods=["POST"])
-flask.add_endpoint(
-    endpoint="/interactions", endpoint_name="interactions", handler=interactions.handler, methods=["POST"]
-)
-flask.add_endpoint(endpoint="/help", endpoint_name="help", handler=help_command.handler, methods=["POST"])
-flask.add_endpoint(
-    endpoint="/classify", endpoint_name="classify", handler=classify_command.handler, methods=["POST"]
-)
-flask.add_endpoint(endpoint='/db', endpoint_name='database', handler=database_command.handler, methods=['POST'])
-flask.add_endpoint(endpoint='/kubeflow', endpoint_name='kubeflow', handler=kubeflow_command.handler, methods=["POST"])
+for command_endpoint in command_endpoints:
+    flask.add_endpoint(endpoint=command_endpoint.endpoint,
+                       endpoint_name=command_endpoint.endpoint_name,
+                       handler=command_endpoint.command.handler,
+                       methods=command_endpoint.methods)
 
 slack_wrapper.add_hanlders(event="message", handler=message_event.handler)
 slack_wrapper.add_hanlders(event="reaction_added", handler=reaction_event.handler)
