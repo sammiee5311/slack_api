@@ -1,3 +1,5 @@
+[![UnitTest](https://github.com/sammiee5311/slack_api/actions/workflows/unittest.yml/badge.svg?branch=main)](https://github.com/sammiee5311/slack_api/actions/workflows/unittest.yml)
+
 # slack_api
 
 This is basic program of slack api.
